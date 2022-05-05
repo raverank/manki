@@ -1,0 +1,19 @@
+.card {
+  font-family: arial, sans-serif;
+  font-size: 20px;
+  text-align: left;
+  color: black;
+  background-color: white;
+}
+
+.question {
+  color: white;
+  background-image: linear-gradient(to bottom, #2e5c8a, #193552);
+  padding: 0.5em;
+  border-radius: 0.2em;
+}
+
+.solution {
+  color: black;
+  padding: 0.3em;
+}

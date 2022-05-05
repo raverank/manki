@@ -19,10 +19,28 @@ Ignored text.
 
 Multiple paragraphs ignored
 
+## More
+
+questions
+
+## and more?
+
+Answers
+
+## and
+
+even
+
+## more!
+
+and more
+
+# More Test 
+
 ## Fourth: Tables.
 
 | Test | Column2 | Column3 |
-| ---- | ------- | ------- |
+|------|---------|---------|
 | Row2 | **Foo** | _Bar_   |
 
 ## Fifth: Images.
@@ -33,4 +51,4 @@ Some text
 
 With plain html:
 
-<img src="./img/gull.jpg" width="100%" height="10%">
+<img src="./img/gull.jpg" width="100%" height="10%" alt="gull">

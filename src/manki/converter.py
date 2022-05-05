@@ -1,49 +1,67 @@
 import importlib.resources as pkg_resources
 import json
 from bs4 import BeautifulSoup, Tag
-from bs4.element import PageElement
+from bs4.element import PageElement, ResultSet
 from genanki import Note, Deck, Model, Package
-from typing import List
-from manki import templates
+from .deck import AnkiDeck
+from typing import List, Union
+
 import markdown
 import logging
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
-logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
 
 
-class Html2Anki:
-    def __init__(self, raw_html: str, deck: Deck, root: str):
-        raw_html = raw_html.replace("\n", "")
-        self._raw = BeautifulSoup(raw_html, features="html.parser")
-        self.deck: Deck = deck
-        self.media = []
-        self._root: Path = Path(root)
-        self._generate_notes()
+def _find_deck_name(html):
+    h1: ResultSet = html.find_all("h1")
+    if len(h1) > 1:
+        raise ValueError("Too many top level header in the current HTML-string!")
+    elif len(h1) == 0:
+        return "Unnamed-Deck"
+    else:
+        return h1[0].contents[0]
 
-    def _generate_notes(self):
+
+class Html2AnkiDeck:
+    def __init__(self, raw_html: str, model: Model, root: Union[Path, str]):
+        raw_html = raw_html.replace("\n", "")
+        splitted = ["<h1" + i for i in raw_html.split("<h1") if i]
+        self.html_raw = [BeautifulSoup(i, features="html.parser") for i in splitted]
+        self.model: Model = model
+        self.media = []
+        self.decks = []
+        self._root: Path = Path(root)
+
+    def generate_decks(self):
+        for raw in self.html_raw:
+            name = _find_deck_name(raw)
+            deck = AnkiDeck(name)
+            deck.add_model(self.model)
+            self.decks.append(self._generate_notes(raw, deck))
+
+    def _generate_notes(self, html, deck):
         h2: Tag
-        for i, h2 in enumerate(self._raw.find_all("h2")):
+        for i, h2 in enumerate(html.find_all("h2")):
             self._handle_media(h2)
             question = "".join([str(elem) for elem in h2.contents])
 
             answer, comment = self._extract_answer_and_comment(h2)
 
-            default_model = list(self.deck.models.values())[0]
+            default_model = list(deck.models.values())[0]
             note = Note(model=default_model)
-            logger.debug("Found question: '%s'", question)
-            logger.debug("Found answer: '%s'", answer)
+            logger.debug("Found question %d: '%s'", i, question)
+            logger.debug("Found answer   %d: '%s'", i, answer)
             note.fields = [question, answer]
 
             if comment:
                 logger.debug("Found comment: '%s'", comment)
                 # note.fields.append(comment)
 
-            self.deck.add_note(note)
+            deck.add_note(note)
+        return deck
 
     def _extract_answer_and_comment(self, h2_tag):
         answer, comment = [], []
@@ -79,15 +97,11 @@ class Html2Anki:
                         if not self._is_duplicate_image(img_path):
                             self.media.append(img_path)
                             img.attrs["src"] = img_path.name
-                            logger.debug(
-                                "Found image: '%s' at '%s'", img.attrs["src"], img_path
-                            )
+                            logger.debug("Found image: '%s' at '%s'", img.attrs["src"], img_path)
                         else:
                             logger.debug("Skipping duplicate image")
                     else:
-                        logger.warning(
-                            "Image at '%s' does not exists. Ignoring it.", img_path
-                        )
+                        logger.warning("Image at '%s' does not exists. Ignoring it.", img_path)
 
     def _is_duplicate_image(self, img_path: Path):
         for path in self.media:
@@ -111,13 +125,16 @@ class Html2Anki:
         return False
 
 
-class Md2Html:
-    def __init__(self, raw_markdown: str, deck: Deck, root: str):
+class Markdown2AnkiDeck:
+    def __init__(self, raw_markdown: Union[Path, str], model: Model, root: Union[Path, str]):
         extensions = [
-            "pymdownx.highlight",
-            "pymdownx.arithmatex",
-            "pymdownx.extra",
-            "md_in_html",
+            "pymdownx.highlight",  # enable code highlighting
+            "pymdownx.arithmatex",  # enable math via MathJax
+            "pymdownx.betterem",  # better interpretation of emphasize chars
+            "markdown.extensions.attr_list",  # enable attribute lists
+            "markdown.extensions.def_list",  # enable 'definition' list type
+            "markdown.extensions.tables",  # enable tables
+            "markdown.extensions.md_in_html",  # enable markdown inside HTML
         ]
 
         extension_config = {
@@ -134,52 +151,15 @@ class Md2Html:
             extensions=extensions,
             extension_configs=extension_config,
         )
-        self.deck = deck
+
+        if isinstance(raw_markdown, Path):
+            raw_markdown = "".join(open(raw_markdown, mode="r").readlines())
+
         self.html = self.md.convert(raw_markdown)
         self.root: Path = Path(root)
-        hc = Html2Anki(self.html, self.deck, self.root)
+        hc = Html2AnkiDeck(self.html, model, self.root)
+        hc.generate_decks()
+        self.decks = hc.decks
         self.media = hc.media
 
-    pkg_resources.read_text(templates, "mathjax_header.html")
-
-
-if __name__ == "__main__":
-    root = Path("./../../tests/data/test_plain")
-    with open(root.joinpath("test_plain.md"), mode="r") as f:
-        content = f.read()
-        deck = Deck(deck_id=1, name="Test")
-        model = Model(
-            1607392319,
-            "Simple Model",
-            fields=[
-                {"name": "Front"},
-                {"name": "Back"},
-            ],
-            css=".card {\n  font-family: arial;\n  font-size: 20px;\n  text-align: left;\n  color: black;\n  background-color: white;\n}\n\n.question {\n  color: white;\n  background-image: linear-gradient(to bottom, #2e5c8a, #193552);\n  padding: 0.5em;\n  border-radius: 0.2em;\n}\n\n.solution {\n  color: black;\n  padding: 0.3em;\n}",
-            templates=[
-                {
-                    "name": "Card 1",
-                    "qfmt": '<div class="question">{{Front}}</div>',
-                    "afmt": '{{FrontSide}}\n\n<div class="solution">\n{{Back}}\n</div>',
-                },
-            ],
-        )
-        deck.add_model(model)
-        mc = Md2Html(content, deck, root)
-        notes = [n.fields for n in mc.deck.notes]
-
-        print(notes)
-        print(json.dumps(notes))
-        # question: str = note.fields[0]
-        # answer: str = note.fields[1]
-        # print(f'["{question.e}", "{answer}"]')
-        # print(mc.html)
-        # pck = Package(deck_or_decks=deck, media_files=mc.media)
-        # deck.description = "my description"
-        # pck.write_to_file("foobar.apkg")
-        # deck.write_to_file("foobar.apkg")
-
-    # with open("./../../tests/data/html_questions.html", mode="r") as f:
-    #     content = f.read()
-    #     hc = HTMLConverter(content)
-    #     [print(n.fields) for n in hc.notes]
+    pkg_resources.read_text("manki.templates", "mathjax_header.html")
