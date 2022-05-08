@@ -6,15 +6,15 @@ parser = argparse.ArgumentParser(prog="Manki",
                                              "files into ANKI card decks or other useful formats like PDF or HTML.")
 
 parser.add_argument(
-    "input",
+    "--input", "-i",
     type=str,
     nargs="+",
     help="One or more Markdown Files to be converted to Anki",
 )
 parser.add_argument(
-    "--name", "-n",
+    "--title", "-t",
     type=str,
-    help="Name of the Anki deck.py",
+    help="Title of the Anki deck.py",
 )
 parser.add_argument(
     "--output", "-o",
