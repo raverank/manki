@@ -9,7 +9,7 @@ class MankiImporter:
         self.config = config
         self.title = config["general"]["title"]
         self.authors = ensure_list(config["general"]["author"])
-        self.package = QAPackage(name=self.title, author=self.authors)
+        self.package = QAPackage(title=self.title, author=self.authors)
 
     def create_package(self, raw_source: Dict[str, str]) -> QAPackage:
         """Custom method that creates the QAPackage with all QAChapter and QAItem

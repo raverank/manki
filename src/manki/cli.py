@@ -46,3 +46,9 @@ parser.add_argument(
     default="default",
     help="Define the style "
 )
+parser.add_argument(
+    "--verbose", "-v",
+    action="store_true",
+    default=False,
+    help="Set the output to DEBUG mode"
+)

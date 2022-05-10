@@ -1,25 +1,35 @@
-from multiprocessing.sharedctypes import Value
 from pathlib import Path
-from typing import Any, Dict
+import warnings
+from manki.exporter.exporter_pdf import PdfExporter
 
-from .converter import Markdown2AnkiDeck
-from .deck import AnkiDeck, TemplateModel, AnkiPackage
+from manki.processor.random_question import RandomQuestionProcessor
+
+# from typing import Any, Dict
+
+# from .converter import Markdown2AnkiDeck
 from .cli import parser
-from .util import ensure_list
+from .util import deep_get, ensure_list
 from manki.importer.importer_markdown import MarkdownImporter
+from manki.exporter.exporter_anki import AnkiExporter
 import logging
 from rich.logging import RichHandler
-from rich import print
+
+# from rich import print
 import toml
 
 
 logger = logging.getLogger()
-logger.addHandler(RichHandler())
-logger.setLevel(logging.DEBUG)
+handler = RichHandler()
+logger.addHandler(handler)
+handler.setLevel(logging.WARNING)
+
+# filter warnings from genanki
+warnings.filterwarnings("ignore", module="genanki", message="^Field contained the following invalid HTML tags")
 
 
 def get_config(root, args):
-    config = toml.load(Path(root).joinpath("manki.toml"))
+    root = Path(root).resolve()
+    config = toml.load(root.joinpath("manki.toml"))
     config["general"]["root"] = root
 
     # select the correct title and write it in the config dict.
@@ -39,6 +49,11 @@ def get_config(root, args):
 
 def main():
     args = parser.parse_args()
+    if args.verbose:
+        handler.setLevel(logging.DEBUG)
+    else: 
+        handler.setLevel(logging.INFO)
+    
     root = args.root or Path.cwd()
     config = get_config(root, args)
 
@@ -52,20 +67,16 @@ def main():
     # prepare the importer
     importer = MarkdownImporter(config)
     pack = importer.create_package(sources)
-    # print(pack)
+    if deep_get(config, "processor.randomquestions", False):
+        logger.info("Running random question processor.")
+        rqp = RandomQuestionProcessor(config, pack)
+        rqp.process()
+
+    exporter = AnkiExporter(config, pack)
+    exporter.export()
     
-
-    # package = AnkiPackage(title)
-    # model = TemplateModel(title + "-model", args.style)
-
-    # print(sources)
-    # mda = Markdown2AnkiDeck(file_path, model, root)
-    # print(len(mda.decks))
-    # print(mda.decks)
-    # for deck in mda.decks:
-    #     package.add_deck(deck)
-    # package.export()
-    # print(args)
+    # exporter = PdfExporter(config, pack)
+    # exporter.export()
 
 
 if __name__ == "__main__":

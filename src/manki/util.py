@@ -1,4 +1,20 @@
-from bs4 import BeautifulSoup, PageElement, Tag
+from functools import reduce
+from bs4 import BeautifulSoup, Tag
+import hashlib
+import inflection
+
+
+def deep_get(dictionary, keys, default=None):
+    return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
+
+
+def sanitize_string(s: str):
+    s = inflection.underscore(s).replace(" ", "_").replace("-", "_")
+    return s
+
+
+def get_hash(text: str) -> int:
+    return int(hashlib.sha1(text.encode("utf-8")).hexdigest(), base=16) % (10**10)
 
 
 def ensure_list(input):
@@ -25,5 +41,5 @@ def split_at_tags(name: str, soup: BeautifulSoup):
             end_tag = tags[i]
             splitted.append(extract_html_between_tags(start_tag, end_tag, include_start_tag=True))
             start_tag = end_tag
-    
+
     return splitted

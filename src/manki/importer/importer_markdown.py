@@ -1,13 +1,11 @@
-from curses import raw
 from pathlib import Path
-from posixpath import split
-from bs4 import BeautifulSoup, PageElement, ResultSet, Tag
+from bs4 import BeautifulSoup, ResultSet
 import markdown
 from manki.importer import base
-from typing import Dict, List
+from typing import Dict, Union
 
 from manki.qa_data_struct import QAChapter, QAItem, QAPackage
-from manki.util import extract_html_between_tags, split_at_tags
+from manki.util import split_at_tags
 
 import logging
 
@@ -20,19 +18,20 @@ class MarkdownImporter(base.MankiImporter):
     def __init__(self, config):
         super().__init__(config)
         extensions = [
-            "pymdownx.highlight",  # enable code highlighting
             "pymdownx.arithmatex",  # enable math via MathJax
+            "pymdownx.highlight",  # enable code highlighting
+            "pymdownx.superfences",
             "pymdownx.betterem",  # better interpretation of emphasize chars
             "markdown.extensions.attr_list",  # enable attribute lists
             "markdown.extensions.def_list",  # enable 'definition' list type
             "markdown.extensions.tables",  # enable tables
-            "markdown.extensions.md_in_html",  # enable markdown inside HTML
         ]
 
         extension_config = {
             "pymdownx.arithmatex": {
-                "generic": False,
+                "generic": True,
                 "preview": False,
+                "smart_dollar": False,
             },
             "pymdownx.highlight": {
                 "use_pygments": True,
@@ -60,7 +59,6 @@ class MarkdownImporter(base.MankiImporter):
         ht_sources = [self.md.convert(text) for text in raw_source.values()]
         sources_parsed = [BeautifulSoup(text, features="html.parser") for text in ht_sources]
         for source in sources_parsed:
-            self._handle_media(source)
             chap_sources = split_at_tags("h1", source)
             for chap_source in chap_sources:
                 chap = self._create_chapter(chap_source)
@@ -78,7 +76,6 @@ class MarkdownImporter(base.MankiImporter):
     def _create_item(self, item_bs: BeautifulSoup) -> QAItem:
         h2_tag = item_bs.find("h2")
         answer, comment = [], []
-
         is_comment = False
         for next_sibling in h2_tag.find_next_siblings():
             if next_sibling.name == "hr":
@@ -90,9 +87,23 @@ class MarkdownImporter(base.MankiImporter):
                 else:
                     answer.append(next_sibling)
 
+        # the content of <h2> tags is not parsed by the markdown extension.
+        # As the heading might contain complex math, multiple paragraphs, images, ... or
+        # other markdown-content, it has to be parsed again (manually).
         question_string = "".join([str(elem) for elem in h2_tag.contents])
+        question_string = self.md.convert(question_string)
+        question_bs = self._handle_media(question_string)
+        question_string = str(question_bs)
+
+        # this part needs refactoring!
         answer_string = "".join([str(elem) for elem in answer])
+        answer_bs = self._handle_media(answer_string)
+        answer_string = str(answer_bs)
+
         comment_string = "".join([str(elem) for elem in comment]) if comment else None
+        if comment:
+            comment_bs = self._handle_media(comment_string)
+            comment_string = str(comment_bs)
 
         return QAItem(question_string, answer_string, comment_string)
 
@@ -105,19 +116,26 @@ class MarkdownImporter(base.MankiImporter):
         else:
             return h1[0].contents[0]
 
-    def _handle_media(self, bs: BeautifulSoup):
+    def _handle_media(self, bs: Union[str, BeautifulSoup]):
+        if not isinstance(bs, BeautifulSoup):
+            bs = BeautifulSoup(bs, features="html.parser")
+
         for img in bs.find_all("img", recursive=True):
             root = Path(self.config["general"]["root"])
             img_path = root.joinpath(img.attrs["src"]).resolve()
             if img_path.exists():
                 if not self._is_duplicate_image(img_path):
                     self.package.media.append(img_path)
-                    img.attrs["src"] = img_path.name
                     logger.info("Using image: '%s' from '%s'", img.attrs["src"], img_path)
                 else:
                     logger.debug("Skipping duplicate image %s", img.attrs["src"])
+                # the image path has to be changed to the image name only for anki
+                img.attrs["src"] = img_path.name
             else:
-                logger.warning("Image at '%s' does not exists. Ignoring it.", img_path)
+                logger.warning(
+                    "Image at '%s' does not exists. Ignoring it. (Found in: '%s...')", img_path, bs.get_text()[0:30]
+                )
+        return bs
 
     def _is_duplicate_image(self, img_path: Path):
         for path in self.package.media:

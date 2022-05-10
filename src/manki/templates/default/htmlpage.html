@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{Title}}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script
+      type="text/javascript"
+      async
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"
+    ></script>
+    <script>
+      MathJax.Hub.Config({
+        config: ["MMLorHTML.js"],
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS", "output/NativeMML"],
+        tex2jax: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+          processEscapes: true,
+          processEnvironments: true,
+          ignoreClass: ".*|",
+          processClass: "arithmatex",
+        },
+      });
+    </script>
+    <style>
+      {{Style}}
+    </style>
+  </head>
+  <body>
+  <div class="content">
+    <h1>{{Title}}</h1>
+    <div overflow: hidden>{{Macros}}</div>
+    {{QA}}
+  </div>
+  </body>
+</html>
