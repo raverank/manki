@@ -1,0 +1,65 @@
+<style>
+  #content {
+    width: 100%;
+    margin: auto;
+    white-space-collapse: discard;
+    font-size: 0;
+  }
+
+  #infoblock {
+    font-size: medium;
+    display: table;
+    width: 100%;
+    color: white;
+    background-image: linear-gradient(to bottom, #2e5c8a, #193552);
+    padding: 0.5em;
+    border-radius: 0.2em;
+    text-align: center;
+  }
+
+  #infoblock table {
+    width: 100%;
+    margin: 0pt;
+    table-layout: fixed;
+  }
+
+  #infoblock td {
+    vertical-align: top;
+  }
+
+  .tableheading {
+    font-weight: bold;
+  }
+
+  #preamble {
+    font-size: medium;
+    margin-top: 5%;
+    text-align: justify;
+  }
+  
+  #disclaimer {
+    font-size: small;
+  }
+</style>
+<div id="content">
+  <div id="infoblock">
+    <table>
+      <tr class="tableheading">
+        <td>Erstellt durch</td>
+        <td>Stand</td>
+        <td>Decks</td>
+        <td>Fragen</td>
+        <td>Package-Hash</td>
+      </tr>
+      <tr>
+        <td>{{ general.author|join(', ') }}</td>
+        <td>{{ general.date }}, {{ general.time }}</td>
+        <td>{{ package.n_chapters }}</td>
+        <td>{{ package.n_items }}</td>
+        <td>{{ package.package_id }}</td>
+      </tr>
+    </table>
+  </div>
+  <div id="preamble">{{ general.preamble }}
+  <div id="disclaimer">Keine Gewähr für Aktualität, Richtigkeit und Vollständigkeit der Informationen. Für Hinweise, Fehler oder Fragen, einfach eine Mail an <a href=\"mailto:i-am-spam@gmx.de\">i-am-spam@gmx.de</a>. Die Inhalte in diesem Dokument werden Studierenden der Luft- und Raumfahrttechnik an der Universität Stuttgart im Rahmen des Studiums der Luft- und Raumfahrttechnik an der Universität Stuttgart zur Verfügung gestellt. Diese dürfen ausschließlich für akademische Zwecke verwendet werden und sind Studierenden der Luft- und Raumfahrttechnik an der Universität Stuttgart vorbehalten. Weder Korrektheit noch Vollständigkeit der Inhalte wird gewährleistet und weder für fehlerhafte noch für fehlende Informationen wird gehaftet. Die Verwendung verläuft auf eigene Gefahr und wird nicht empfohlen. Für jegliche Folgen die aus der Verwendung der in dieser Formelsammlung enthaltenen Formeln, Grafiken und Informationen hervorgehen ist der Anwender verantwortlich. Alle Dokumente sind nur für den privaten Gebrauch bestimmt. Die Weitergabe an Dritte, Vervielfältigung oder die Veröffentlichung dieser Dateien vollständig, auszugsweise oder in Abwandlung ist strengstens untersagt.</div>
+</div>

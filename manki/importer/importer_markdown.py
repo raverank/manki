@@ -1,11 +1,16 @@
+from dataclasses import asdict
 from pathlib import Path
-from bs4 import BeautifulSoup, ResultSet
+from bs4 import BeautifulSoup, ResultSet, Tag
 import markdown
+from manki.configuration import MankiConfig
 from manki.importer import base
 from typing import Dict, Union
 
-from manki.qa_data_struct import QAChapter, QAItem, QAPackage
+from manki.data_struct import QAChapter, QAItem, QAPackage
 from manki.util import split_at_tags
+from rich import print
+from htmlmin import minify
+
 
 import logging
 
@@ -15,10 +20,10 @@ logger.setLevel(logging.DEBUG)
 
 
 class MarkdownImporter(base.MankiImporter):
-    def __init__(self, config):
+    def __init__(self, config: MankiConfig):
         super().__init__(config)
         extensions = [
-            "pymdownx.arithmatex",  # enable math via MathJax
+            "mdx_math",  # enable mathjax output
             "pymdownx.highlight",  # enable code highlighting
             "pymdownx.superfences",
             "pymdownx.betterem",  # better interpretation of emphasize chars
@@ -28,11 +33,7 @@ class MarkdownImporter(base.MankiImporter):
         ]
 
         extension_config = {
-            "pymdownx.arithmatex": {
-                "generic": True,
-                "preview": False,
-                "smart_dollar": False,
-            },
+            "mdx_math": {"enable_dollar_delimiter": True},
             "pymdownx.highlight": {
                 "use_pygments": True,
             },
@@ -58,6 +59,7 @@ class MarkdownImporter(base.MankiImporter):
 
         ht_sources = [self.md.convert(text) for text in raw_source.values()]
         sources_parsed = [BeautifulSoup(text, features="html.parser") for text in ht_sources]
+        sources_parsed = [self._fix_math(bs) for bs in sources_parsed]
         for source in sources_parsed:
             chap_sources = split_at_tags("h1", source)
             for chap_source in chap_sources:
@@ -65,15 +67,70 @@ class MarkdownImporter(base.MankiImporter):
                 self.package.add_chapter(chap)
         return self.package
 
+    def _fix_math(self, bs: BeautifulSoup):
+        """As the only markdown extension that reliably detects math is the 'mdx_math' extension, we have to work around
+        the fact that it can only output legacy MathJax2 script tags. We want the MathJax3 output and have to fix this
+        manually. The Extension 'arithmatex' that could output in this format natively, is not reliable in math
+        detection and cannot be used therefore.
+
+        Args:
+            bs (BeautifulSoup): The html source to be fixed.
+
+        Returns:
+            _type_: _description_
+        """
+        # fix all display math <script>-blocks
+        for displ_math in bs.find_all("script", {"type": "math/tex; mode=display"}):
+            displ_math: Tag
+            displ_math.name = "div"
+            displ_math.attrs = {"class": "math-display"}
+            displ_math.insert(0, r"\[")
+            displ_math.insert(len(displ_math.contents), r"\]")
+
+        # fix all inline math <script>-blocks
+        for inl_math in bs.find_all("script", {"type": "math/tex"}):
+            inl_math: Tag
+            inl_math.name = "span"
+            inl_math.attrs = {"class": "math-inline"}
+            inl_math.insert(0, r"\(")
+            inl_math.insert(len(inl_math.contents), r"\)")
+
+        return bs
+
     def _create_chapter(self, chapter_bs: BeautifulSoup) -> QAChapter:
         name = chapter_bs.find("h1").string
         chap = QAChapter(name)
         item_sources = split_at_tags("h2", chapter_bs)
+        prev_source: BeautifulSoup = None
         for item_source in item_sources:
-            chap.add_item(self._create_item(item_source))
+            if self._is_long_question(item_source) and prev_source is None:
+                prev_source = item_source
+            elif prev_source:
+                item = self._create_long_item(prev_source, item_source)
+                chap.add_item(item)
+                prev_source = None
+            else:
+                item = self._create_normal_item(item_source)
+                chap.add_item(item)
         return chap
 
-    def _create_item(self, item_bs: BeautifulSoup) -> QAItem:
+    def _is_long_question(self, item_bs: BeautifulSoup):
+        h2_tag = item_bs.find("h2")
+        title: str = h2_tag.contents[0] or None
+        return title.startswith("---")
+
+    def _create_long_item(self, question_bs: BeautifulSoup, answer_bs: BeautifulSoup):
+        # this creates an item which has at least a correct answer
+        item = self._create_normal_item(answer_bs)
+        h2_tag = question_bs.find("h2")
+        question_string = "".join([str(elem) for elem in h2_tag.next_siblings])
+        question_bs = self._handle_media(question_string)
+        question_string = str(question_bs)
+
+        return QAItem(question_string, item.answer, item.comment, item.tags)
+
+    def _create_normal_item(self, item_bs: BeautifulSoup) -> QAItem:
+        # exit()
         h2_tag = item_bs.find("h2")
         answer, comment = [], []
         is_comment = False
@@ -87,13 +144,20 @@ class MarkdownImporter(base.MankiImporter):
                 else:
                     answer.append(next_sibling)
 
+        question_string = "".join([str(elem) for elem in h2_tag.contents])
         # the content of <h2> tags is not parsed by the markdown extension.
         # As the heading might contain complex math, multiple paragraphs, images, ... or
         # other markdown-content, it has to be parsed again (manually).
-        question_string = "".join([str(elem) for elem in h2_tag.contents])
         question_string = self.md.convert(question_string)
         question_bs = self._handle_media(question_string)
         question_string = str(question_bs)
+        # if display math is used in a normal markdown heading (`## Math: $$a+b=c$$`), the two dollars get interpreted
+        # as if they would introduce inline math twice and the result is parsed wrong in the second pass as well... This can be fixed manually.
+        question_string = question_string.replace(
+            r'<span class="arithmatex"><span class="arithmatex">\(&lt;span class="arithmatex"&gt;\(',
+            r'<span class="arithmatex">\(',
+        )
+        question_string = question_string.replace(r"\)</span></span>)", r"\)</span>")
 
         # this part needs refactoring!
         answer_string = "".join([str(elem) for elem in answer])
@@ -121,7 +185,7 @@ class MarkdownImporter(base.MankiImporter):
             bs = BeautifulSoup(bs, features="html.parser")
 
         for img in bs.find_all("img", recursive=True):
-            root = Path(self.config["general"]["root"])
+            root = Path(self.config.get("general.root"))
             img_path = root.joinpath(img.attrs["src"]).resolve()
             if img_path.exists():
                 if not self._is_duplicate_image(img_path):
@@ -129,8 +193,6 @@ class MarkdownImporter(base.MankiImporter):
                     logger.info("Using image: '%s' from '%s'", img.attrs["src"], img_path)
                 else:
                     logger.debug("Skipping duplicate image %s", img.attrs["src"])
-                # the image path has to be changed to the image name only for anki
-                img.attrs["src"] = img_path.name
             else:
                 logger.warning(
                     "Image at '%s' does not exists. Ignoring it. (Found in: '%s...')", img_path, bs.get_text()[0:30]

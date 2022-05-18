@@ -1,12 +1,13 @@
 from typing import Any, Dict, Generic, TypeVar
+from manki.configuration import MankiConfig
 
-from manki.qa_data_struct import QAPackage
+from manki.data_struct import QAPackage
 
 T = TypeVar("T")
 
 
 class MankiExporter(Generic[T]):
-    def __init__(self, config: Dict[str, Any], package: QAPackage):
+    def __init__(self, config: MankiConfig, package: QAPackage):
         self.config = config
         self.package = package
 

@@ -167,3 +167,4 @@ cython_debug/
 .idea/watcherTasks.xml
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/inspectionProfiles/Project_Default.xml
+.vscode/settings.json

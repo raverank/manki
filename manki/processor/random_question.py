@@ -1,16 +1,17 @@
+from manki.configuration import MankiConfig
 from .base import MankiProcessor
 from typing import Dict, Any
 from manki.util import deep_get
-from manki.qa_data_struct import QAItem, QAPackage
+from manki.data_struct import QAItem, QAPackage
 import random
 
 
 class RandomQuestionProcessor(MankiProcessor):
-    def __init__(self, config: Dict[str, Any], package: QAPackage):
+    def __init__(self, config: MankiConfig, package: QAPackage):
         super().__init__(config, package)
 
     def _deep_get(self, key, default=None):
-        return deep_get(self.config, "processor.randomquestions." + key, default=default)
+        return self.config.get("processor.randomquestions." + key, default=default)
 
     def process(self):
         max_qa = self._deep_get("max_questions", 3)

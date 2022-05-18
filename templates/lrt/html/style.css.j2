@@ -1,0 +1,81 @@
+{% include "_common/style.css.j2" %}
+
+.content {
+  max-width: 60%;
+  margin: auto;
+  font-family: arial, sans-serif;
+  color: black;
+}
+
+.solution{
+  padding-left: 3pt;
+  margin-bottom: 20px;
+  border: 2pt solid #585858;
+  border-top: 0pt none;
+  border-top-left-radius: 0em;
+  border-top-right-radius: 0em;
+  border-bottom-left-radius: 0.4em;
+  border-bottom-right-radius: 0.4em;
+}
+
+.question {
+  border-top-left-radius: 0.4em;
+  border-top-right-radius: 0.4em;
+  border-bottom-left-radius: 0em;
+  border-bottom-right-radius: 0em;
+}
+
+img {
+  width: 70%;
+  max-width: 600px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+  /* The sidebar menu */
+.sidenav {
+  /* height: 100%; /* Full-height: remove this if you want "auto" height */
+  font-family: arial, sans-serif;
+  width: auto; /* Set the width of the sidebar */
+  max-width: 15%;
+  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-image: linear-gradient(to bottom, #2e5c8a, #193552);
+  border-radius: 0.4em;
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin: 5px;
+  color: white;
+}
+
+.sidenav-title{
+  font: bold;
+  font-size: large;
+  width: auto;
+  text-align: center;
+  padding: 5px;
+}
+
+/* The navigation menu links */
+.sidenav a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: medium;
+  display: block;
+  color: white;
+}
+
+/* When you mouse over the navigation links, change their color */
+.sidenav a:hover {
+  color: #8b8b8b;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+} 

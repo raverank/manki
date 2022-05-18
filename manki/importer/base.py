@@ -1,14 +1,14 @@
 from typing import Any, Dict
 
-from manki.qa_data_struct import QAPackage
+from manki.data_struct import QAPackage
 from manki.util import ensure_list
 
 
 class MankiImporter:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.title = config["general"]["title"]
-        self.authors = ensure_list(config["general"]["author"])
+        self.title = config.get("general.title")
+        self.authors = ensure_list(config.get("general.author"))
         self.package = QAPackage(title=self.title, author=self.authors)
 
     def create_package(self, raw_source: Dict[str, str]) -> QAPackage:
