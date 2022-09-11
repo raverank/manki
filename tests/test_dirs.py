@@ -5,7 +5,8 @@ from manki.importer.importer_markdown import MarkdownImporter
 import json
 import pytest
 
-TEST_DIRS = ["plain"]
+
+TEST_DIR = "tests"
 
 
 def _create_test_references(path: Path, pack: QAPackage):
@@ -17,7 +18,7 @@ def _create_test_references(path: Path, pack: QAPackage):
 
 @pytest.mark.parametrize("directory", ["plain", "math", "images", "code"])
 def test_directories(directory):
-    path = Path.cwd().joinpath(directory)
+    path = Path.cwd().joinpath(TEST_DIR).joinpath(directory)
     stem = path.stem
     config = MankiConfig(root=path)
     importer = MarkdownImporter(config)
