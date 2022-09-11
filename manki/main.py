@@ -3,30 +3,22 @@ import warnings
 
 from manki.configuration import MankiConfig
 
-# from manki.template import Template
-from jinja2 import FileSystemLoader, Environment
 from manki.exporter.exporter_html import HTMLExporter
 from manki.exporter.exporter_pdf import PdfExporter
 
 from manki.processor.random_question import RandomQuestionProcessor
+from manki.util import sanitize_string
 
-# from typing import Any, Dict
-
-# from .converter import Markdown2AnkiDeck
 from .cli import parser
-from .util import deep_get, ensure_list
 from manki.importer.importer_markdown import MarkdownImporter
 from manki.exporter.exporter_anki import AnkiExporter
 import logging
-from rich import print
 from rich.logging import RichHandler
 import rich.traceback as traceback
 
+from jinja2 import Environment, FileSystemLoader
+
 traceback.install()
-
-# from rich import print
-import toml
-
 
 logger = logging.getLogger()
 handler = RichHandler()
@@ -37,12 +29,39 @@ handler.setLevel(logging.DEBUG)
 warnings.filterwarnings("ignore", module="genanki", message="^Field contained the following invalid HTML tags")
 
 
+def create_new(args):
+    title = args.new
+    title_sanitized = sanitize_string(title)
+    folder = Path.cwd().joinpath(title_sanitized)
+    folder.mkdir(exist_ok=True)
+    for name in ["macros.md", "manki.toml", "questions.md"]:
+        logger.debug("Creating '%s'", name)
+        TMPLT_PATH = Path(__file__).parent.parent.joinpath("templates").resolve()
+        loader = FileSystemLoader(TMPLT_PATH)
+        template_env = Environment(
+            loader=loader,
+            line_statement_prefix="§",
+            line_comment_prefix="°",
+            comment_start_string="°",
+        )
+        template_env.globals["title"] = title
+        template_env.globals["title_sanitized"] = title_sanitized
+        rendered = template_env.get_template(f"new_{name}.j2").render()
+        with open(folder.joinpath(name), "w") as f:
+            f.write(rendered)
+
+
 def main():
     args = parser.parse_args()
     if args.verbose:
         handler.setLevel(logging.DEBUG)
     else:
         handler.setLevel(logging.INFO)
+
+    if args.new is not None:
+        logger.info(f"Creating new Manki project '{args.new}'")
+        create_new(args)
+        exit()
 
     root = args.root or Path.cwd()
     config = MankiConfig(root=root)
@@ -74,7 +93,7 @@ def main():
     else:
         logger.error("The output format '%s' is unknown.", args.format)
         exit(code=1)
-        
+
     exporter.export()
 
 

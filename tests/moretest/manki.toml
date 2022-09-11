@@ -1,0 +1,22 @@
+# Configuration for the manki converter that converts Markdown documents to Anki packages
+[general]
+author = "Author 1"
+# author = ["Author 1", "Author 2"]
+preamble = """
+Hier kann man einen kleinen Preamble-Text schreiben. Dieser erscheint auf der Hauptseite des Decks.
+"""
+title = "Mein Markdown Deck in Anki"
+template = "lrt"
+
+[input]
+macros = "macros.md"
+source = [
+  "qa-test.md",
+]
+
+[processor.randomquestions]
+max_questions = 0
+questions = [
+  ["This is a randomly included question", "This is the answer."],
+]
+start_after = 3

@@ -1,4 +1,5 @@
 from pathlib import Path
+from pprint import pprint
 from typing import Dict, Any, ItemsView, List
 from bs4 import BeautifulSoup, Tag
 
@@ -34,7 +35,7 @@ class HTMLExporter(MankiExporter):
         n_cards = self.package.n_items
         logger.info("Exporting '%s' with '%d' decks and %d cards in total to html", file_name, n_decks, n_cards)
 
-        with open(file_name, "w") as f:
+        with open(file_name, "w+") as f:
             f.write(self.html)
 
     def _get_macros(self) -> str:

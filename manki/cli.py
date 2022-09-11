@@ -5,23 +5,23 @@ parser = argparse.ArgumentParser(prog="Manki",
                                  description="This program allows you to convert question and answer-style markdown "
                                              "files into ANKI card decks or other useful formats like PDF or HTML.")
 
-parser.add_argument(
-    "--input", "-i",
-    type=str,
-    nargs="+",
-    help="One or more Markdown Files to be converted to Anki",
-)
-parser.add_argument(
-    "--title", "-t",
-    type=str,
-    help="Title of the Anki deck.py",
-)
-parser.add_argument(
-    "--output", "-o",
-    type=str,
-    help="Name of the output file. If omitted, the same name as the (single) input file is used "
-         "or a generic name if a pattern was used as input",
-)
+# parser.add_argument(
+#     "--input", "-i",
+#     type=str,
+#     nargs="+",
+#     help="One or more Markdown Files to be converted to Anki",
+# )
+# parser.add_argument(
+#     "--title", "-t",
+#     type=str,
+#     help="Title of the Anki deck.py",
+# )
+# parser.add_argument(
+#     "--output", "-o",
+#     type=str,
+#     help="Name of the output file. If omitted, the same name as the (single) input file is used "
+#          "or a generic name if a pattern was used as input",
+# )
 parser.add_argument(
     "--root", "-r",
     type=str,
@@ -35,17 +35,24 @@ parser.add_argument(
          "Other options are 'pdf' or 'html' or custom defined output types"
 )
 parser.add_argument(
-    "--macros", "-m",
+    "--new", "-n",
     type=str,
-    default="macros.tex",
-    help="A file with (MathJax compatible) definitions of TeX macros. Default is 'macros.tex'",
+    nargs="?",
+    const="my_anki_project",
+    help="Create a new dummy project with some defaults."
 )
-parser.add_argument(
-    "--style", "-s",
-    type=str,
-    default="default",
-    help="Define the style "
-)
+# parser.add_argument(
+#     "--macros", "-m",
+#     type=str,
+#     default="macros.tex",
+#     help="A file with (MathJax compatible) definitions of TeX macros. Default is 'macros.tex'",
+# )
+# parser.add_argument(
+#     "--style", "-s",
+#     type=str,
+#     default="default",
+#     help="Define the style "
+# )
 parser.add_argument(
     "--verbose", "-v",
     action="store_true",

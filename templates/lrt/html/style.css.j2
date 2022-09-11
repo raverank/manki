@@ -79,3 +79,21 @@ img {
   .sidenav {padding-top: 15px;}
   .sidenav a {font-size: 18px;}
 } 
+
+
+@media print{
+   .no-print{
+       display:none;
+   }
+   
+   .card {
+      break-inside: avoid;
+    }
+    
+    .content {
+      max-width: 90%;
+      margin: auto;
+      font-family: arial, sans-serif;
+      color: black;
+    }
+}

@@ -27,11 +27,13 @@
     </style>
   </head>
   <body>
-  <div class="sidenav">
-    <div class="sidenav-title">Content</div>
-    {% for chapter in package["chapters"] %}
-      <a href="#chap-{{ loop.index }}">{{chapter.title}}</a>
-    {% endfor %}
+  <div class="no-print">
+    <div class="sidenav">
+      <div class="sidenav-title">Content</div>
+      {% for chapter in package["chapters"] %}
+        <a href="#chap-{{ loop.index }}">{{chapter.title}}</a>
+      {% endfor %}
+    </div>
   </div>
   <div class="content">
     <h1>{{ general.title }}</h1>

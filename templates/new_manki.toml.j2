@@ -1,0 +1,14 @@
+# Configuration for the manki converter that converts Markdown documents to Anki packages
+[general]
+author = "Author 1" # or multiple authors with ["Author 1", "Author 2", ...]
+preamble = """
+A preamble that gets set as the decks description.
+"""
+title = "{{ title }}"
+template = "default" # or custom templates
+
+[input]
+macros = "macros.md"
+source = [
+  "questions.md",
+]

@@ -1,9 +1,26 @@
 {
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true,
-    "python.testing.pytestArgs": [],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
-    "jupyter.jupyterServerType": "local"
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true,
+  "python.testing.pytestArgs": [],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "jupyter.jupyterServerType": "local",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/__pycache__": true,
+    "**/manki.egg-info": true
+  },
+  "explorerExclude.backup": null,
+  "python.formatting.provider": "black",
+  "[python]": {
+      "editor.rulers": [120],
+      "rewrap.autoWrap.enabled": true,
+      "rewrap.wrappingColumn": 120
+  },
 }
