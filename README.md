@@ -28,7 +28,7 @@ As the file is read as a TOML file, subsections may be created.
 The following options can be set:
 
 | Option                                    | Description                                                                  | Type                   | Example                                     |
-| :---------------------------------------- | :--------------------------------------------------------------------------- | :--------------------- | :------------------------------------------ | ---------------------------------------- |
+| ----------------------------------------- | ---------------------------------------------------------------------------- | ---------------------- | ------------------------------------------- | ---------------------------------------- |
 | `general.title`                           | The title of the project                                                     | `str`                  | `"My Title"`                                |
 | `general.author`                          | One or multiple authors                                                      | `str                   | List[str]`                                  | `John Doe` or `[John Doe, Foo Bar]`      |
 | `general.template`                        | The template that shall be used for the generation                           | `default               | lrt`                                        | `"lrt"`                                  |
