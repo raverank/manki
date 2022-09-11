@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from pathlib import Path
 from bs4 import BeautifulSoup, ResultSet, Tag
 import markdown
@@ -9,7 +8,6 @@ from typing import Dict, Union
 from manki.data_struct import QAChapter, QAItem, QAPackage
 from manki.util import split_at_tags
 from rich import print
-from htmlmin import minify
 
 
 import logging
@@ -158,11 +156,14 @@ class MarkdownImporter(base.MankiImporter):
             r'<span class="arithmatex">\(',
         )
         question_string = question_string.replace(r"\)</span></span>)", r"\)</span>")
-
+        question_string = question_string.replace(r'<script type="math/tex">', r'\(')
+        question_string = question_string.replace(r'</script></span>', r'\)</span>')
+        
         # this part needs refactoring!
         answer_string = "".join([str(elem) for elem in answer])
         answer_bs = self._handle_media(answer_string)
         answer_string = str(answer_bs)
+        # exit()
 
         comment_string = "".join([str(elem) for elem in comment]) if comment else None
         if comment:
