@@ -1,36 +1,33 @@
 from pathlib import Path
 from manki.configuration import MankiConfig
+from manki.data_struct import QAPackage
 from manki.importer.importer_markdown import MarkdownImporter
 import json
-from rich.pretty import pprint
+import pytest
 
 TEST_DIRS = ["plain"]
 
 
-def _read_file(path: Path, as_json=False):
-    with open(path, "r") as f:
-        if as_json:
-            content = json.load(f)
-        else:
-            content = f.read()
-    return content
+def _create_test_references(path: Path, pack: QAPackage):
+    dct = pack.to_dict()
+    dct["media"] = [str(x) for x in dct["media"]]
+    with open(path.joinpath(f"{path.stem}.json"), "w") as f:
+        json.dump(dct, f)
 
-def _test_one_dir(path: Path):
+
+@pytest.mark.parametrize("directory", ["plain", "math", "images", "code"])
+def test_directories(directory):
+    path = Path.cwd().joinpath(directory)
     stem = path.stem
-    js = _read_file(path.joinpath(f"{stem}.json"), as_json=True)
     config = MankiConfig(root=path)
     importer = MarkdownImporter(config)
-    sources = {src: _read_file(path.joinpath(src)) for src in config.get("input.source")}
+    sources = {src: open(path.joinpath(src)).read() for src in config.get("input.source")}
     pack = importer.create_package(sources)
-    print(sources)
-    pprint(pack.to_dict())
-    print(js)
-
-
-def test_directories():
-    for directory in TEST_DIRS:
-        path = Path.cwd().joinpath(directory)
-        _test_one_dir(path)
+    pack_dict = pack.to_dict()
+    pack_dict["media"] = [str(x) for x in pack_dict["media"]]
+    # _create_test_references(path, pack)
+    js = json.load(open(path.joinpath(f"{stem}.json")))
+    assert pack_dict == js
 
 
 if __name__ == "__main__":

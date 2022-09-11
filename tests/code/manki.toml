@@ -1,0 +1,9 @@
+[general]
+author = "Code Author"
+title = "Code"
+template = "default"
+
+[input]
+source = [
+  "code.md",
+]

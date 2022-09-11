@@ -1,0 +1,10 @@
+[general]
+author = "Math Author"
+title = "Math"
+template = "default"
+
+[input]
+macros = "macros.md"
+source = [
+  "math.md",
+]

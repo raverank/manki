@@ -1,0 +1,9 @@
+[general]
+author = "Image Author"
+title = "Images"
+template = "default"
+
+[input]
+source = [
+  "images.md",
+]
