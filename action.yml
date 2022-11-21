@@ -1,0 +1,16 @@
+name: 'Manki Converter'
+description: 'Generate Anki Packages from Markdown Files using Manki'
+inputs:
+  project-root:
+    description: 'The root of the manki project (including the manki.toml)'
+    required: true
+outputs:
+  conversion-log: 
+    description: 'Output of the conversion process.'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - "--git-action"
+    - "--root"
+    - ${{ inputs.project-root }}

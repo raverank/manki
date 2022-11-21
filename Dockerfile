@@ -1,38 +1,28 @@
-FROM python:3.9-alpine as build
+FROM python:3.9-alpine
 
-# Don't create `.pyc` files:
-# ENV POETRY_HOME="/opt/poetry" \
-    # POETRY_NO_INTERACTION=1 \
-    # POETRY_VERSION=1.2.2
-# ENV PATH="$PATH:/root/.local/bin/"
+# RUN adduser -D mankiuser
+# USER mankiuser
+# ENV PATH="/home/mankiuser/.local/bin:${PATH}"
 
-# RUN pip install -f requirements.txt
-# RUN pip install -e .
-# RUN apk add gcc libffi-dev linux-headers musl-dev
-# RUN pipx install poetry==${POETRY_VERSION}
+# WORKDIR /home/mankiuser/app
 
+# COPY --chown=mankiuser:mankiuser requirements.txt .
+# RUN chmod -R 777 .
+# RUN /usr/local/bin/python -m pip install --upgrade pip
+# RUN pip install --user -r requirements.txt
+
+# COPY --chown=mankiuser:mankiuser . .
+# RUN pip install --user -e .
 
 WORKDIR /app
+
+RUN pip install --no-cache-dir --upgrade pip
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-# RUN poetry config virtualenvs.create false
-# RUN poetry install --no-ansi --no-dev
+
 COPY . .
 RUN pip install -e .
 
-# Label the container
-LABEL maintainer="Frieder Frank"
-LABEL repository="https://github.com/raverank/manki"
-LABEL homepage="https://github.com/raverank/manki"
+WORKDIR /run
 
-WORKDIR /app/run
-
-CMD [ "manki" ]
-
-
-
-
-
-  
-
-
+ENTRYPOINT [ "manki" ]
