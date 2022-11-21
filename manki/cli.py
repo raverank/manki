@@ -41,6 +41,12 @@ parser.add_argument(
     const="my_anki_project",
     help="Create a new dummy project with some defaults."
 )
+parser.add_argument(
+    "--git-action",
+    action="store_true",
+    default=False,
+    help="Write the correct output to the GITHUB_ environment variables"
+)
 # parser.add_argument(
 #     "--macros", "-m",
 #     type=str,

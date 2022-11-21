@@ -15,6 +15,7 @@ from manki.exporter.exporter_anki import AnkiExporter
 import logging
 from rich.logging import RichHandler
 import rich.traceback as traceback
+import os
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -63,7 +64,7 @@ def main():
         create_new(args)
         exit()
 
-    root = args.root or Path.cwd()
+    root = Path(args.root or Path.cwd())
     config = MankiConfig(root=root)
     # page = config.render_template("anki/question.html")
     # print(page)
@@ -95,6 +96,14 @@ def main():
         exit(code=1)
 
     exporter.export()
+    
+    if args.git_action:
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            file_name = sanitize_string(exporter.package.title) + ".apkg"
+            n_decks = exporter.package.n_chapters
+            n_cards = exporter.package.n_items
+            info = f"Exporting '{file_name}' with {n_decks} decks and {n_cards} cards in total"
+            print(f'conversion-log={info}', file=fh)
 
 
 if __name__ == "__main__":
