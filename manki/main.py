@@ -23,8 +23,9 @@ traceback.install()
 
 logger = logging.getLogger()
 handler = RichHandler()
+handler.setLevel(logging.INFO)
 logger.addHandler(handler)
-handler.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # filter warnings from genanki
 warnings.filterwarnings("ignore", module="genanki", message="^Field contained the following invalid HTML tags")
