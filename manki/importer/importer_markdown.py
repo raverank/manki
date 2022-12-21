@@ -7,8 +7,6 @@ from typing import Dict, Union
 
 from manki.data_struct import QAChapter, QAItem, QAPackage
 from manki.util import split_at_tags
-from rich import print
-
 
 import logging
 
@@ -58,7 +56,8 @@ class MarkdownImporter(base.MankiImporter):
         ht_sources = [self.md.convert(text) for text in raw_source.values()]
         sources_parsed = [BeautifulSoup(text, features="html.parser") for text in ht_sources]
         sources_parsed = [self._fix_math(bs) for bs in sources_parsed]
-        for source in sources_parsed:
+        for name, source in zip(raw_source.keys(), sources_parsed):
+            logger.info(f"Processing '{name}'")
             chap_sources = split_at_tags("h1", source)
             for chap_source in chap_sources:
                 chap = self._create_chapter(chap_source)
@@ -97,6 +96,9 @@ class MarkdownImporter(base.MankiImporter):
 
     def _create_chapter(self, chapter_bs: BeautifulSoup) -> QAChapter:
         name = chapter_bs.find("h1").string
+        if name is None:
+            logger.critical("I could not find a top-level heading (starting with a single '#').")
+            exit()
         chap = QAChapter(name)
         item_sources = split_at_tags("h2", chapter_bs)
         prev_source: BeautifulSoup = None
