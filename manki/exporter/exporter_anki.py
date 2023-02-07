@@ -76,15 +76,12 @@ class AnkiExporter(MankiExporter):
             )
         ]
 
-        print(self.config.render_template("anki/preamble.html.j2"))
         for chap in self.package.chapters:
             chap_name = self.package.title + "::" + chap.title
             deck = Deck(deck_id=chap.chapter_id, name=chap_name)
             deck.add_model(model=model)
             for item in chap.items:
-                # print(item.to_dict())
                 self._fix_img_src_name(item)
-                # print(item.to_dict())
                 fields = [item.question, item.answer]
                 logger.debug("New Item with fields\nQuesion: %s...\nAnswer: %s...", fields[0][:50], fields[1][:50])
                 note = Note(model=model, fields=fields, guid=item.item_id)
