@@ -38,6 +38,7 @@ class MarkdownImporter(base.MankiImporter):
         self.md = markdown.Markdown(
             extensions=extensions,
             extension_configs=extension_config,
+            tab_length=2,  # makes sure that two spaces get interpreted as a tab (makes nested lists easier)
         )
 
     def create_package(self, raw_source: Dict[str, str]) -> QAPackage:
@@ -158,9 +159,9 @@ class MarkdownImporter(base.MankiImporter):
             r'<span class="arithmatex">\(',
         )
         question_string = question_string.replace(r"\)</span></span>)", r"\)</span>")
-        question_string = question_string.replace(r'<script type="math/tex">', r'\(')
-        question_string = question_string.replace(r'</script></span>', r'\)</span>')
-        
+        question_string = question_string.replace(r'<script type="math/tex">', r"\(")
+        question_string = question_string.replace(r"</script></span>", r"\)</span>")
+
         # this part needs refactoring!
         answer_string = "".join([str(elem) for elem in answer])
         answer_bs = self._handle_media(answer_string)
