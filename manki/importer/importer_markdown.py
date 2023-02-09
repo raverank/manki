@@ -55,7 +55,6 @@ class MarkdownImporter(base.MankiImporter):
         """
 
         ht_sources = [self.md.convert(text) for text in raw_source.values()]
-        print(ht_sources[0])
         sources_parsed = [BeautifulSoup(text, features="html.parser") for text in ht_sources]
         sources_parsed = [self._fix_math(bs) for bs in sources_parsed]
         for name, source in zip(raw_source.keys(), sources_parsed):
